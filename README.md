@@ -1,4 +1,4 @@
-# Introduction
+# Yokogawa Marketplace
 This is the backend for the marketplace for battery recycling.
 
 This project is a fully autonomous, cloud-native bidding marketplace powered by collaborative multi-agent LLMs and the Model Communication Protocol (MCP). It is designed to enable enterprises to deploy, manage, and scale AI agents that can independently participate in complex industrial workflows.
