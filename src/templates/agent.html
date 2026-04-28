@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Agent for {{user_name}}</title>
+    <style>
+        html {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        p {
+            width: 80ch;
+        }
+
+        table,
+        tr,
+        td {
+            border: black solid 1px;
+            border-collapse: collapse;
+        }
+
+        td {
+            padding: 4px;
+        }
+
+        #chat-box {
+            width: 480px;
+            height: 320px;
+        }
+
+        canvas {
+            background-color: #fffce8;
+        }
+
+        .container {
+            display: flex;
+            margin: 8px 0px;
+            gap: 8px;
+            align-items: start;
+        }
+
+        .submit-container {
+            justify-content: space-between;
+        }
+
+        #controls {
+            max-width: 480px;
+            align-self: start;
+        }
+
+        .tiny,
+        .tiny p {
+            width: 40ch;
+        }
+
+        #default-negotiation-model {
+            width: 60ch;
+        }
+
+        fieldset div,
+        form div {
+            margin: 8px 0px;
+        }
+
+        .show {
+            display: block;
+        }
+
+        .hide {
+            display: none;
+        }
+    </style>
+    <script async type="module" src="/static/main.js"></script>
+
+</head>
+
+<body>
+    <h1>Welcome!</h1>
+    <p>This is the {{user_name}} agent.</p>
+    <p>This is part of the Yokogawa-RE MarketPlace.</p>
+
+    <h3>Login</h3>
+    <p>Please enter your key to grant marketplace access to the agent.</p>
+    <form>
+        <input type="password" name="key">
+        <input type="submit" name="Key" value="Grant access">
+    </form>
+
+    <h3>Data</h3>
+    <p>There's 2 kinds of data:</p>
+    <ol>
+        <li>Private: internal</li>
+        <li>Public: available for all people.</li>
+    </ol>
+
+    <h1>Public data</h1>
+
+    <h2>Daily production</h2>
+    <p>This information will be public information that will be shared with the marketplace.</p>
+
+    <h2>Material preferences</h2>
+    <p>This is a list of materials that you are interested in.</p>
+    <table>
+        <thead>
+            <tr>
+                <td>Material code</td>
+                <td>Parameter</td>
+                <td>Minimum (inclusive)</td>
+                <td>Maximum (exclusive)</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material, params in preferences.items() %}
+            {% for param, (minimum, maximum) in params.items() %}
+            <tr>
+                <td> {{material}}</td>
+                <td> {{param}}</td>
+                <td> {{minimum}}</td>
+                <td> {{maximum}}</td>
+            </tr>
+            {% endfor %}
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Delivery</h2>
+    <p>Here you can mark listings as ready for delivery.</p>
+    <p>The agent will connect to the respective logistics provider and schedule a pick-up.</p>
+
+    <h1>Private data</h1>
+
+    <h2>Negotiation model</h2>
+
+    <p>
+        The agent will negotiate on your behalf within some default budgets.
+    </p>
+
+    <p>
+        There are a few schemes with which you can specify your negotiation model.
+    </p>
+    <dl>
+        <dt>Scheme 1: Distributions</dt>
+        <dd>
+            <p>You can specify the minimum and maximum margins around market price.
+                You can also specify the distribution of your offers within this range.
+            </p>
+            <p>For example, if your margins are <code>[90, 105]</code>, and your distribution is
+                <code>[0,10, 20, 40, 80, 100],</code> and the average market price is <code>100k</code>,
+                the offers will be
+                <code>[90k, 91.5k, 93k, 96k, 102k, 105k].</code>
+            </p>
+            <p>You can configure how many offers the agent makes, by adding more points in the distribution.</p>
+            <p>This scheme is most flexible and it is going to be your default model, as it is not tied to
+                any market price specifically.
+            </p>
+        </dd>
+
+        <dt>Scheme 2: Margins</dt>
+        <dd>
+            <p>You specify the margins around market price as a percentage.</p>
+
+            <p>For example, if you margins are <code>[90, 92, 97, 99, 100],</code> then,
+
+            <ul>
+                <li><code>First offer: 90% of market price</code></li>
+                <li><code>Second offer: 92% of market price</code></li>
+                <li><code>Third offer: 97% of market price, and so on</code></li>
+            </ul>
+            </p>
+
+        </dd>
+        <dt>Scheme 3: Prices (explicit)</dt>
+        <dd>
+            <p>You specify the exact prices that will be used during negotiation.</p>
+            <p>With this scheme, you can control exactly how the negotiation proceeds.</p>
+        </dd>
+
+    </dl>
+
+
+    <p>You can use scheme 2 and 3 on a listing-basis only, as offers made in one listing
+        might not apply for another listing.
+    </p>
+
+
+    <h3>Default negotiation model:</h3>
+    Your default scheme has to be distributions, as it doesn't require you to specify any particular price.
+    <form id="default-negotiation-model">
+        <input type="submit" value="Save" />
+    </form>
+
+    <p>Not all listings are the same. For example, you might request for X quantity of materials in Y time. If
+        the time is too short for the requested quantity, the sellers might ask for a higher price.
+    </p>
+    <p>You must be willing to pay a higher price, otherwise, your offers won't be accepted
+        because the deadlines are too tight.
+    </p>
+    <p>
+        So, if you feel like the defaults
+        aren't good enough for a certain listing, then you can override
+        the budgets and the offers distribution, before the agent takes over:
+    </p>
+    <div class="container">
+        <div>
+            <canvas height="600" width="800"></canvas>
+        </div>
+        <div>
+            <form id="controls">
+                <fieldset>
+                    <legend>Market</legend>
+                    <label for="market_price">Market price</label>
+                    <input type="text" value="100000" name="market_price" />
+
+                </fieldset>
+
+                <fieldset>
+                    <legend>Visualization</legend>
+
+                    <div class="container">
+                        <div>
+                            <label for="scale_min">Scale minimum</label>
+                            <input type="text" value="80000" name="scale_min" />
+                        </div>
+                        <div>
+                            <label for="scale_max">Scale maximum</label>
+                            <input type="text" value="130000" name="scale_max" />
+                        </div>
+                    </div>
+                </fieldset>
+                <div>
+                    <input type="submit" name="action" value="Preview" />
+                </div>
+
+            </form>
+
+            <div class="tiny">
+                <h3>Clarity about ZOPA: </h3>
+                <p>
+                    Every quote from the buyer which is less
+                    than the seller's least offer, is unacceptable for the seller.
+                </p>
+                <p>
+                    Every quote from the seller which is greater
+                    than the buyer's highest offer, is unacceptable for the buyer.
+                </p>
+
+            </div>
+
+        </div>
+    </div>
+
+    <p>
+        The offers and counter-offers that are made are public, visible only to relevant actors.
+        The calculations and reasoning behind the values will be private, visible only to you.
+    </p>
+
+    <h2>Bidding model</h2>
+    <p>Here you can set up auction increments.</p>
+    <p>
+        In an auction listing, the agent will place a bid automatically, if permitted.</p>
+    <p>
+        After receiving information about a new bid, the agent will try to outbid the current highest bid
+        by adding this increment to the current highest bid, and placing a new bid.
+    </p>
+    <p>
+        This process will continue till the agent runs out of budget.
+    </p>
+
+    <h2>Agent Decision logs</h2>
+    <p>Rationales could be generated on demand.</p>
+
+    <h2>Stock</h2>
+    <p>This is a table that describes your current inventory.</p>
+    <p>You can instruct the agent to procure materials once stock goes below a certain value.</p>
+    <p>You can also instruct the agent to procure materials when you have an order (MTO).</p>
+
+    <h2>Calendar</h2>
+    <p>This includes machine level planning and schedules.</p>
+
+    <h2>Chat</h2>
+    <p>You can interact with the agent using this chat.</p>
+    <p>You can create listings, participate in sales, and fetch data using this chatbot.</p>
+
+    <form>
+        <textarea id="chat-box"></textarea>
+        <input type="submit" />
+    </form>
+
+    <template id="buyer-model-template">
+        <fieldset>
+            <legend>Buyer</legend>
+            <div>
+                <label for="buyer_scheme">Buyer scheme</label>
+                <select name="buyer_scheme" class="scheme-selector">
+                    <option value="" disabled>--Please choose an option--</option>
+                    <option value="price">Prices</option>
+                    <option value="margin">Margins</option>
+                    <option value="distribution">Distributions</option>
+                </select>
+            </div>
+
+            <div class="margin model">
+                <label for="buyer_margins">Margins</label>
+                <input type="text" value="90, 91, 94, 97, 100" name="buyer_margins" />
+            </div>
+            <div class="price model">
+                <label for="buyer_prices">Prices</label>
+                <input type="text" value="90, 91, 94, 97, 100" name="buyer_prices" />
+            </div>
+            <div class="distribution model">
+                <div class="container">
+                    <div>
+                        <label for="buyer_margin_min">Minimum margin</label>
+                        <input type="text" value="90" name="buyer_margin_min" />
+                    </div>
+                    <div>
+                        <label for="buyer_margin_max">Maximum margin</label>
+                        <input type="text" value="100" name="buyer_margin_max" />
+                    </div>
+                </div>
+                <div>
+                    <label for="buyer_distribution">Quote distribution</label>
+                    <input type="text" value="0, 10, 20, 40, 80, 100" name="buyer_distribution" />
+                </div>
+            </div>
+
+        </fieldset>
+    </template>
+
+    <template id="seller-model-template">
+        <fieldset>
+            <legend>Seller</legend>
+            <div>
+                <label for="seller_scheme">Seller scheme</label>
+                <select name="seller_scheme" class="scheme-selector">
+                    <option value="" disabled>--Please choose an option--</option>
+                    <option value="price">Prices</option>
+                    <option value="margin">Margins</option>
+                    <option value="distribution">Distributions</option>
+                </select>
+            </div>
+
+            <div class="margin model">
+                <label for="seller_margins">Margins</label>
+                <input type="text" value="90, 91, 94, 97, 100" name="seller_margins" />
+            </div>
+            <div class="price model">
+                <label for="seller_prices">Prices</label>
+                <input type="text" value="90, 91, 94, 97, 100" name="seller_prices" />
+            </div>
+            <div class="distribution model">
+                <div class="container">
+                    <div>
+                        <label for="seller_margin_min">Minimum margin</label>
+                        <input type="text" value="100" name="seller_margin_min" />
+                    </div>
+                    <div>
+                        <label for="seller_margin_max">Maximum margin</label>
+                        <input type="text" value="110" name="seller_margin_max" />
+                    </div>
+                </div>
+                <div>
+                    <label for="seller_distribution">Quote distribution</label>
+                    <input type="text" value="0, 10, 20, 40, 80, 100" name="seller_distribution" />
+                </div>
+            </div>
+
+        </fieldset>
+    </template>
+</body>
+
+</html>

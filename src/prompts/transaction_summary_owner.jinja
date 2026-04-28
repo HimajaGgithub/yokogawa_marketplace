@@ -1,0 +1,52 @@
+You have to generate context_and_objective, action, analysis and final_decision.
+
+# Description of context_and_objective:
+- why the listing was created.
+- If there is not analysis provided as to why the listing was created, context_and_objective must
+    be about why the listing was accepted at a certain price.
+
+# Description of action:
+- what actions were performed: for example,
+    * "After performing several rounds of negotiations, we agreed to buy raw materials at $ 10k
+        as it matches our budget constraints, and we need the materials for producing material X"
+    * "After placing multiple bids, we agreed to buy material X at $ 10k as we have a requirement
+        for this material at this time."
+    * "We delivered material within <target-date> as all the materials were procured and
+        produced in time."
+
+# Description of analysis:
+- this must show the numbers and calculations involved in the transaction.
+- this must be a summary of the input analysis if any is provided.
+- use the same structure as the input analysis, and show the calculations as it is.
+- analysis must be a markdown string which is an unordered list (bullet can be *)
+- example:
+    "* Average market price: $105,300.\n
+    * Previous offers: $107,460 and lower.\n
+    * Final accepted offer: $105,840.\n
+    * Deviation from average market price: +0.51%.\n
+    * Ensured compliance with the required SoH of 80% for the listing.\n
+    * Total production capacity: 3900 MWh, sufficient to meet demand."
+
+
+# Description of final_decision:
+- a full summary of the context and actions taken.
+
+# Input description:
+- In the input message, you will get:
+
+    1. first_analysis: The winning party's initial analysis when they first engaged with the listing
+    2. responder_messages: All messages from the winning party (bids/offers with prices and rationales)
+    3. winner_info: Final winning price and winner details
+    4. listing_item: The listing details (including type: supply or demand)
+
+# Output format:
+Your output must be a JSON object (with no backticks) containing four keys:
+
+    {
+        "context_and_objective":"",
+        "action":"",
+        "analysis":"",
+        "final_decision":"",
+    }
+
+Your output will be passed to json.loads() to be used as a dictionary, so don't include backticks.

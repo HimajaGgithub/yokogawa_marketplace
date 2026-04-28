@@ -1,0 +1,179 @@
+services:
+  marketplace:
+    build:
+      context: .
+      dockerfile: ./dist/marketplace/Dockerfile
+    image: marketplace-image
+    container_name: marketplace-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.marketplace
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import sys, urllib.request; urllib.request.urlopen('http://localhost:8000'); sys.exit(0)\" || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  manufacturer:
+    build:
+      context: .
+      dockerfile: ./dist/manufacturer/Dockerfile
+    image: manufacturer-image
+    container_name: manufacturer-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.manufacturer
+    ports:
+      - "8001:8001"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  recycler:
+    build:
+      context: .
+      dockerfile: ./dist/recycler/Dockerfile
+    image: recycler-image
+    container_name: recycler-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.recycler
+    ports:
+      - "8002:8002"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  recycler_2:
+    build:
+      context: .
+      dockerfile: ./dist/recycler_2/Dockerfile
+    image: recycler_2-image
+    container_name: recycler_2-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.recycler_2
+    ports:
+      - "8003:8003"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  fleet:
+    build:
+      context: .
+      dockerfile: ./dist/fleet/Dockerfile
+    image: fleet-image
+    container_name: fleet-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.fleet
+    ports:
+      - "8004:8004"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  manufacturer_2:
+    build:
+      context: .
+      dockerfile: ./dist/manufacturer_2/Dockerfile
+    image: manufacturer_2-image
+    container_name: manufacturer_2-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.manufacturer_2
+    ports:
+      - "8005:8005"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  oem:
+    build:
+      context: .
+      dockerfile: ./dist/oem/Dockerfile
+    image: oem-image
+    container_name: oem-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.oem
+    ports:
+      - "8006:8006"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  fleet_2:
+    build:
+      context: .
+      dockerfile: ./dist/fleet_2/Dockerfile
+    image: fleet_2-image
+    container_name: fleet_2-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.fleet_2
+    ports:
+      - "8007:8007"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  oem_2:
+    build:
+      context: .
+      dockerfile: ./dist/oem_2/Dockerfile
+    image: oem_2-image
+    container_name: oem_2-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.oem_2
+    ports:
+      - "8008:8008"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  virtual_recycler:
+    build:
+      context: .
+      dockerfile: ./dist/virtual_recycler_agent/Dockerfile
+    image: virtual_recycler-image
+    container_name: virtual_recycler-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.market_agent
+    ports:
+      - "8009:8009"
+    depends_on:
+      marketplace:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./dist/frontend/Dockerfile
+    image: frontend-image
+    container_name: frontend-container
+    env_file:
+      - .env
+      - .env.docker
+      - .env.frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      marketplace:
+        condition: service_healthy
