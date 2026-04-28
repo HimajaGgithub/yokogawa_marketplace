@@ -1,1 +1,0 @@
-ssh -i .\connectsu-re-yti_key.pem azureuser@20.244.10.110
